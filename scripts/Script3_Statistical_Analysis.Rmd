@@ -1,0 +1,54 @@
+---
+title: "Script3_CombinedAnalysis"
+author: "Christopher LeBoa"
+date: "2025-06-27"
+output: html_document
+---
+
+The purpose of this script is to combine the microbiological data with the survey data collected from households in order to understand 
+
+1) The relationship with pathogen data (log transformed E.coli) and WASH variables 
+
+2) Conduct a linear regression relating potential exposures with amount of e.coli as outcome variable 
+
+3) Make a single table of different regression results using the package Kable
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#Load packages
+#install.packages("knitr")
+
+library(tidyverse)
+library(knitr)
+library(here)
+
+here()
+
+# Load the data
+taqman_data <- read_csv(here("clean_data", "tac_data_cleaned.csv"))
+microbiological_data <- read_csv(here("clean_data", "microbial_data_cleaned.csv"))
+survey_data <- read_csv(here("simulated_data", "survey_data_simulated.csv"))
+
+```
+
+## Combine Data 
+We are going to combine the two datasets using the `household_id` as the key. This will allow us to analyze the relationship between the microbiological data and the survey data.
+
+```{r cars}
+combined_data <-survey_data %>% 
+  left_join(microbiological_data, by = "household_id") 
+
+#Independant task: Join the taqman data to this merged dataset
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
