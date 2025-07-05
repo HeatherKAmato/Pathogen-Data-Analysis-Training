@@ -60,13 +60,13 @@ microbio_clean <- microbio_df %>%
     dry_soil_mass = dry_weight - plate_weight,
     soil_moisture = (wet_soil_mass - dry_soil_mass) / dry_soil_mass *100 # estimate soil moisture content as percent
   ) %>%
-  dplyr::select(
+  dplyr::select(.,
     -c(sample_id, plate_weight, wet_weight, dry_weight, wet_soil_mass, dry_soil_mass)
     )
 
 # Check new variables
-table(microbio_clean$sample_type)
-summary(microbio_clean$soil_moisture)
+table(microbio_clean$sample_type) # frequency table for categorical
+summary(microbio_clean$soil_moisture) # summary of continuous vars
 ```
 
 #### Estimate Most Probable Number (MPN) from IDEXX data
@@ -121,10 +121,10 @@ hist(microbio_clean$esbl_e_coli_cfu) # check distribution with histogram
 microbio_clean2 <- microbio_clean %>%
   mutate(moisture_fraction = soil_moisture / 100) %>%
   mutate(esbl_e_coli_cfu_adj = if_else(esbl_e_coli_cfu == 0, 0.5, esbl_e_coli_cfu),
-         adjusted_esbl_cfu = case_when(
+         adjusted_esbl_cfu = case_when(# for specifying values of new variable given values in existing variable
            sample_type %in% c("effluent", "compost") ~ esbl_e_coli_cfu_adj / (1 - moisture_fraction) / 2,
            sample_type == "produce" ~ esbl_e_coli_cfu_adj,
-           TRUE ~ NA_real_ ),
+           TRUE ~ NA_real_ ), # anything else is NA
          log_adjusted_esbl_cfu = log10(adjusted_esbl_cfu) + 1)
 
 hist(microbio_clean2$adjusted_esbl_cfu)
