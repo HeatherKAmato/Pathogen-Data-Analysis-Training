@@ -1,0 +1,97 @@
+---
+title: "Script3_CombinedAnalysis"
+author: "Christopher LeBoa"
+date: "2025-06-27"
+output: html_document
+---
+
+The purpose of this script is to combine the microbiological data with the survey data collected from households in order to understand 
+
+1) The relationship with pathogen data (log transformed E.coli) and WASH variables 
+
+2) Conduct a linear regression relating potential exposures with amount of e.coli as outcome variable 
+
+3) Make a single table of different regression results using the package Kable
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#Load packages
+#install.packages("knitr")
+
+library(tidyverse)
+library(knitr)
+library(here)
+
+here()
+
+# Load the data
+taqman_data <- read_csv(here("clean_data", "tac_data_cleaned.csv"))
+microbiological_data <- read_csv(here("clean_data", "microbial_data_cleaned.csv"))
+survey_data <- read_csv(here("simulated_data", "survey_data_simulated.csv"))
+
+```
+
+## Combine Data 
+We are going to combine the two datasets using the `household_id` as the key. This will allow us to analyze the relationship between the microbiological data and the survey data.
+
+```{r cars}
+combined_data <-survey_data %>% 
+  left_join(microbiological_data, by = "household_id") 
+
+
+```
+## 1) Comparison E. Coli to WASH Variables 
+
+We are going to be using the outcome variable `log_adj_ec_mpn` from the combined dataset. Is this a continuous or categorical variable? 
+
+We are going to be looking at a few different WASH variables from the combined dataset
+If you want to look at the combined dataset what are the WASH variables of interest
+
+you can use glimpse(combined_data) to see the variables in the combined dataset.
+
+```{r glimpse_combined_data}
+
+glimpse(combined_data)
+
+```
+
+We will be using improved_floor, improved_water, improved_sanitation, and handwashing_station as our WASH variables of interest.
+
+We will first be t.tests to see if there are statistically significant differences in the log_adj_ec_mpn between households with and without these WASH variables.
+
+```{r}
+t.test(combined_data$log_adj_ec_mpn ~ combined_data$improved_floor, 
+       data = combined_data, 
+       var.equal = TRUE)
+```
+This shows that there is not a statictically significant difference in the log_adj_ec_mpn between households with and without improved floors. The p-value is 0.2428, which is greater than 0.05, so we fail to reject the null hypothesis that there is no difference in the log_adj_ec_mpn between households with and without improved floors.
+
+Try it for yourself by running the t.test for the other WASH variables of interest.
+```{r}
+t.test(combined_data$log_adj_ec_mpn ~ combined_data$improved_water, 
+       data = combined_data, 
+       var.equal = TRUE)
+
+t.test(combined_data$log_adj_ec_mpn ~ combined_data$improved_sanitation,
+       data = combined_data, 
+       var.equal = TRUE)
+
+t.test(combined_data$log_adj_ec_mpn ~ combined_data$handwashing_station, 
+       data = combined_data, 
+       var.equal = TRUE)
+```
+
+Using T-Tests to spot differences between the log ecoli tells us if there are any statistically significant differences between the groups. However, it does not tell us the strength of the relationship or how much of the variation in log_adj_ec_mpn can be explained by these WASH variables.
+
+## 2) Linear Regression Analysis
+```{r}
+# Linear regression analysis
+lm_model <- lm(log_adj_ec_mpn ~ improved_floor + improved_water + improved_sanitation + handwashing_station, 
+                data = combined_data)
+
+summary(lm_model)
+```
+The summary of the linear regression model shows the coefficients for each of the WASH variables, along with their p-values. This will help us understand the strength and significance of the relationship between these WASH variables and the log_adj_ec_mpn.
+
+We see that none of these WASH variables are statistically significant at the 0.05 level, meaning that we fail to reject the null hypothesis that there is no relationship between these WASH variables and the log_adj_ec_mpn.
